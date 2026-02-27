@@ -1,0 +1,4 @@
+pandas
+almapiwrapper
+almasru
+pymongo
