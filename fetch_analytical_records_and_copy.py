@@ -237,7 +237,7 @@ def transform_iz_mms_id_to_nz_mms_id(iz_mms_id: str) -> Optional[str]:
     if temp_nz_mms_id is None:
         temp_nz_mms_id = IzSruRecord(iz_mms_id).get_nz_mms_id()
         if temp_nz_mms_id is not None:
-            mapping_iz_to_nz.loc[iz_mms_id] = nz_mms_id
+            mapping_iz_to_nz.loc[iz_mms_id] = temp_nz_mms_id
             mapping_iz_to_nz.to_csv(mapping_iz_to_nz_path)
     return temp_nz_mms_id
 
@@ -272,6 +272,8 @@ if __name__ == '__main__':
     parent_mms_ids = get_parent_records_from_logical_set(set_of_parents_id, 'BCUFR')
     statistics['NB_PARENT_RECORDS'] = len(parent_mms_ids)
     for i, parent_mms_id in enumerate(parent_mms_ids, start=1):
+
+        statistics['NB_PROCESSED'] += 1
         logging.info(f'Processing record {i} / {statistics["NB_PARENT_RECORDS"]}: {parent_mms_id}')
         try:
             nz_mms_id_to_copy = get_mms_ids_of_analytical_records(parent_mms_id)
@@ -291,4 +293,5 @@ if __name__ == '__main__':
                 logging.error(f'{parent_mms_id} - {nz_mms_id}: Error while copying record from NZ to IZ: {e}')
                 statistics['FAILED'] += 1
 
+    write_report()
     mongo_client.close()

@@ -63,8 +63,9 @@ if __name__ == '__main__':
     f990a_txt = 'bfdnoanauto'
     f998a_txt = 'no_inventory_analytical'
     iz = 'BCUFR'
+    env = 'S'
 
     # Iterate all MMS IDs
     for i, nz_mms_id in enumerate(nz_mms_ids, start=1):
         logging.info(f'Processing record {i} / {len(nz_mms_ids)}: {nz_mms_id}')
-        copy_analytical_rec_from_nz(nz_mms_id, iz, f990a_txt, f998a_txt)
+        copy_analytical_rec_from_nz(nz_mms_id, iz, env, f990a_txt, f998a_txt)
