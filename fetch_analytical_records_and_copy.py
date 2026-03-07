@@ -32,7 +32,8 @@ f998a_txt = config['process']['f998a_txt']
 mapping_iz_to_nz_path: str = config['process']['mapping_iz_to_nz']
 existing_records_path = config['process']['existing_records']
 set_of_parents_id = config['process']['set_of_parents_id']
-update_delay_days = int(config['process']['update_delay_days'])
+update_data_threshold = datetime.now(timezone.utc) - timedelta(days=int(config['process']['update_delay_days']))
+creation_date_threshold = datetime(int(config['process']['creation_year_threshold']), 1, 1, tzinfo=timezone.utc)
 SruClient.set_base_url(config['process']['sru_url'])
 
 # Report parameters
@@ -162,6 +163,20 @@ def is_accepted_record(doc: Dict[str, Any]) -> bool:
 
     g_value_re = re.compile(r"sp[ée]cia(?:l|ux)|sonder", re.IGNORECASE)
 
+    for df in doc['marc'].get('500', []):
+        for sf in df['sub']:
+            sfa = sf.get('a')
+            if sfa and bool(g_value_re.search(sfa)):
+                logging.warning(f'{doc["mms_id"]}: 500$$a is a special issue: {sfa}')
+                return False
+
+    for df in doc['marc'].get('580', []):
+        for sf in df['sub']:
+            sfa = sf.get('a')
+            if sfa and bool(g_value_re.search(sfa)):
+                logging.warning(f'{doc["mms_id"]}: 580$$a is a special issue: {sfa}')
+                return False
+
     for df in doc['marc'].get('773', []):
         for sf in df['sub']:
             sfg = sf.get('g')
@@ -170,7 +185,6 @@ def is_accepted_record(doc: Dict[str, Any]) -> bool:
                 return False
 
     return True
-
 
 def get_mms_ids_of_analytical_records(parent_id: str) -> Set[Any]:
     """
@@ -189,12 +203,12 @@ def get_mms_ids_of_analytical_records(parent_id: str) -> Set[Any]:
     recids = get_ids(record)
 
     if recids:
-        date_limite = datetime.now(timezone.utc) - timedelta(days=update_delay_days)
         analytical_mms_ids = []
         for doc in mongo_col.find(
                 {
                     "marc.773.sub.w": {"$in": recids},
-                    "u_date": {"$gte": date_limite}
+                    "u_date": {"$gte": update_data_threshold},
+                    "c_date": {"$gte": creation_date_threshold},
                 },
                 {'mms_id': 1, 'access': 1, 'marc.leader': 1, '_id': 0, 'marc.773.sub.g': 1, 'u_date': 1}
             ):
@@ -285,7 +299,7 @@ if __name__ == '__main__':
         for nz_mms_id in nz_mms_id_to_copy:
             bcufr_analytical_records_mms_ids.add(nz_mms_id)
             try:
-                # copy_analytical_rec_from_nz(nz_mms_id, zone=zone, env=env, f990a_txt=f990a_txt, f998a_txt=f998a_txt)
+                copy_analytical_rec_from_nz(nz_mms_id, iz=zone, env=env, f990a_txt=f990a_txt, f998a_txt=f998a_txt)
                 append_id_to_csv(existing_records_path, nz_mms_id)
                 statistics['SUCCESS'] += 1
 

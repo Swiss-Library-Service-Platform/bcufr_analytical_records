@@ -17,6 +17,9 @@ The system uses:
 To start the system:
 `python fetch_analytical_records.py`
 
+The script uses data included in the `data/` directory:
+- `data/analytical_records.json`: Contains the analytical records to be copied.
+
 ## Installation
 Install Python dependencies:
 ```bash
