@@ -63,7 +63,7 @@ if __name__ == '__main__':
     f990a_txt = 'bfdnoanauto'
     f998a_txt = 'no_inventory_analytical'
     iz = 'BCUFR'
-    env = 'S'
+    env = 'P'
 
     # Iterate all MMS IDs
     for i, nz_mms_id in enumerate(nz_mms_ids, start=1):
