@@ -12,9 +12,6 @@ import pandas as pd
 import logging
 import sys
 
-# Config logs
-config_log()
-
 
 def copy_analytical_rec_from_nz(mms_id: str, iz: str, env='P', f990a_txt: Optional[str] = None,
                                 f998a_txt: Optional[str] = None) -> None:
@@ -56,6 +53,18 @@ def copy_analytical_rec_from_nz(mms_id: str, iz: str, env='P', f990a_txt: Option
 
 
 if __name__ == '__main__':
+
+    from pathlib import Path
+    from dotenv import load_dotenv
+
+    config_log(Path(sys.argv[1]).stem)
+
+    CURRENT_DIR = Path(__file__).resolve().parent
+
+    # .env in the parent folder
+    ENV_PATH = CURRENT_DIR.parent / ".env"
+
+    load_dotenv(ENV_PATH)
 
     # nz_mms_ids = pd.read_csv('data/records_to_copy_from_NZ_to_IZ.csv', dtype=str)['mms_id'].values
     nz_mms_ids = pd.read_csv(sys.argv[1], dtype=str)['mms_id'].values
