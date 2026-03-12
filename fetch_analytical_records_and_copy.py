@@ -56,6 +56,8 @@ mapping_iz_to_nz = pd.read_csv(mapping_iz_to_nz_path, index_col='iz_mms_id', dty
 # Ensure index is of type str (important for key lookups)
 mapping_iz_to_nz.index = mapping_iz_to_nz.index.map(str)
 
+mapping_iz_to_nz[~mapping_iz_to_nz.index.duplicated(keep='first')].to_csv(mapping_iz_to_nz_path)
+
 # Remove duplicate index entries, keep the first occurrence
 mapping_iz_to_nz = mapping_iz_to_nz[~mapping_iz_to_nz.index.duplicated(keep='first')]
 
@@ -258,7 +260,7 @@ def transform_iz_mms_id_to_nz_mms_id(iz_mms_id: str) -> Optional[str]:
         temp_nz_mms_id = IzSruRecord(iz_mms_id).get_nz_mms_id()
         if temp_nz_mms_id:
             mapping_iz_to_nz.loc[iz_mms_id] = temp_nz_mms_id
-            mapping_iz_to_nz.to_csv(mapping_iz_to_nz_path)
+            mapping_iz_to_nz[~mapping_iz_to_nz.index.duplicated(keep='first')].to_csv(mapping_iz_to_nz_path)
     return temp_nz_mms_id
 
 
