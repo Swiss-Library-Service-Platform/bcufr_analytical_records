@@ -7,7 +7,7 @@ from almasru.client import SruClient, IzSruRecord
 import pandas as pd
 import os
 import pymongo
-from copy_analytical_records_from_nz_to_iz import copy_analytical_rec_from_nz
+from copy_analytical_records_from_nz_to_iz import copy_analytical_rec_from_nz, is_record_in_iz_already_existing
 import logging
 import re
 import configparser
@@ -16,6 +16,7 @@ from datetime import date, datetime, timedelta, timezone
 
 # Config logs
 config_log()
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 # Load configuration from config.ini
@@ -34,7 +35,6 @@ existing_records_path = config['process']['existing_records']
 set_of_parents_id = config['process']['set_of_parents_id']
 update_data_threshold = datetime.now(timezone.utc) - timedelta(days=int(config['process']['update_delay_days']))
 creation_date_threshold = datetime(int(config['process']['creation_year_threshold']), 1, 1, tzinfo=timezone.utc)
-SruClient.set_base_url(config['process']['sru_url'])
 
 # Report parameters
 report_db = config['report']['mongo_db_report']
@@ -248,9 +248,9 @@ def transform_iz_mms_id_to_nz_mms_id(iz_mms_id: str) -> Optional[str]:
     """
     temp_nz_mms_id = mapping_iz_to_nz.at[iz_mms_id, 'nz_mms_id'] if iz_mms_id in mapping_iz_to_nz.index else None
 
-    if temp_nz_mms_id is None:
+    if pd.isnull(temp_nz_mms_id):
         temp_nz_mms_id = IzSruRecord(iz_mms_id).get_nz_mms_id()
-        if temp_nz_mms_id is not None:
+        if temp_nz_mms_id:
             mapping_iz_to_nz.loc[iz_mms_id] = temp_nz_mms_id
             mapping_iz_to_nz.to_csv(mapping_iz_to_nz_path)
     return temp_nz_mms_id
@@ -273,6 +273,9 @@ def write_report():
 
 
 if __name__ == '__main__':
+
+    SruClient.set_base_url(config['process']['sru_url'])
+
     statistics = {
         'SUCCESS': 0,
         'FAILED': 0,
@@ -280,7 +283,8 @@ if __name__ == '__main__':
         'SKIP': 0,
         'NB_PARENT_RECORDS': 0,
         'DATE': date.today().isoformat(),
-        'TIMESTAMP': datetime.now()
+        'TIMESTAMP': datetime.now(),
+        'ADDED_RECORDS_MMS_IDS': []
     }
 
     parent_mms_ids = get_parent_records_from_logical_set(set_of_parents_id, 'BCUFR')
@@ -297,11 +301,30 @@ if __name__ == '__main__':
             continue
 
         for nz_mms_id in nz_mms_id_to_copy:
+            if nz_mms_id in bcufr_analytical_records_mms_ids:
+                logging.warning(f'{parent_mms_id} - {nz_mms_id}: already identified as analytical record in bcufr_analytical_records_mms_ids, skipping copy')
+                statistics['SKIP'] += 1
+                continue
             bcufr_analytical_records_mms_ids.add(nz_mms_id)
             try:
-                copy_analytical_rec_from_nz(nz_mms_id, iz=zone, env=env, f990a_txt=f990a_txt, f998a_txt=f998a_txt)
-                append_id_to_csv(existing_records_path, nz_mms_id)
+                if is_record_in_iz_already_existing(nz_mms_id, zone, env):
+                    logging.warning(f'{parent_mms_id} - {nz_mms_id}: record already exists in IZ, skipping copy')
+                    statistics['SKIP'] += 1
+                    continue
+            except Exception as e:
+                logging.error(f'{parent_mms_id} - {nz_mms_id}: Error while checking if record already exists in IZ: {e}')
+                statistics['FAILED'] += 1
+                continue
+
+            try:
+                # copy_analytical_rec_from_nz(nz_mms_id,
+                #                            iz=zone, env=env,
+                #                            f990a_txt=f990a_txt,
+                #                            f998a_txt=f998a_txt)
+                # append_id_to_csv(existing_records_path, nz_mms_id)
                 statistics['SUCCESS'] += 1
+                statistics['ADDED_RECORDS_MMS_IDS'].append(nz_mms_id)
+
 
             except Exception as e:
                 logging.error(f'{parent_mms_id} - {nz_mms_id}: Error while copying record from NZ to IZ: {e}')

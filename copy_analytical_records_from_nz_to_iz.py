@@ -4,16 +4,25 @@
 # Usage: python copy_analytical_records_from_nz_to_iz.py <path_to_csv_file_with_mms_ids>
 
 # Import libraries
-from almapiwrapper.inventory import IzBib, NzBib
+from almapiwrapper.inventory import IzBib
 from almapiwrapper.configlog import config_log
 from lxml import etree
-from typing import Optional
+from typing import Optional, Literal
 import pandas as pd
 import logging
 import sys
 
+def is_record_in_iz_already_existing(nz_mms_id: str, iz: str, env: Literal['P', 'S'] = 'P') -> bool:
+    """Check if the record is already an analytical record in the IZ"""
+    # Check if the record already exists in the IZ
+    izbib = IzBib(nz_mms_id, zone=iz, env=env, from_nz_mms_id=True, copy_nz_rec=False)
+    if not izbib.error:
+        return True
+    return False
 
-def copy_analytical_rec_from_nz(mms_id: str, iz: str, env='P', f990a_txt: Optional[str] = None,
+
+
+def copy_analytical_rec_from_nz(mms_id: str, iz: str, env: Literal['S', 'P'] = 'P', f990a_txt: Optional[str] = None,
                                 f998a_txt: Optional[str] = None) -> None:
     """
     Copy analytical record from the NZ to the IZ
@@ -26,6 +35,7 @@ def copy_analytical_rec_from_nz(mms_id: str, iz: str, env='P', f990a_txt: Option
     f990a_txt: string: content of the field 990$$a
     f998a_txt: string: content of the field 998$$a
     """
+
     # Create the copy of the record
     izbib = IzBib(mms_id, zone=iz, env=env, from_nz_mms_id=True, copy_nz_rec=True)
     iz_mms_id = izbib.mms_id
@@ -53,28 +63,32 @@ def copy_analytical_rec_from_nz(mms_id: str, iz: str, env='P', f990a_txt: Option
 
 
 if __name__ == '__main__':
-
-    from pathlib import Path
-    from dotenv import load_dotenv
-
-    config_log(Path(sys.argv[1]).stem)
-
-    CURRENT_DIR = Path(__file__).resolve().parent
-
-    # .env in the parent folder
-    ENV_PATH = CURRENT_DIR.parent / ".env"
-
-    load_dotenv(ENV_PATH)
-
-    # nz_mms_ids = pd.read_csv('data/records_to_copy_from_NZ_to_IZ.csv', dtype=str)['mms_id'].values
-    nz_mms_ids = pd.read_csv(sys.argv[1], dtype=str)['mms_id'].values
-
-    f990a_txt = 'bfdnoanauto'
-    f998a_txt = 'no_inventory_analytical'
-    iz = 'BCUFR'
-    env = 'P'
-
-    # Iterate all MMS IDs
-    for i, nz_mms_id in enumerate(nz_mms_ids, start=1):
-        logging.info(f'Processing record {i} / {len(nz_mms_ids)}: {nz_mms_id}')
-        copy_analytical_rec_from_nz(nz_mms_id, iz, env, f990a_txt, f998a_txt)
+    pass
+    # from pathlib import Path
+    # from dotenv import load_dotenv
+    #
+    # if len(sys.argv) != 2:
+    #     print("Usage: python copy_analytical_records_from_nz_to_iz.py <path_to_csv_file_with_mms_ids>")
+    #     sys.exit(1)
+    #
+    # config_log(Path(sys.argv[1]).stem)
+    #
+    # CURRENT_DIR = Path(__file__).resolve().parent
+    #
+    # # .env in the parent folder
+    # ENV_PATH = CURRENT_DIR.parent / ".env"
+    #
+    # load_dotenv(ENV_PATH)
+    #
+    # # nz_mms_ids = pd.read_csv('data/records_to_copy_from_NZ_to_IZ.csv', dtype=str)['mms_id'].values
+    # nz_mms_ids = pd.read_csv(sys.argv[1], dtype=str)['mms_id'].values
+    #
+    # f990a_txt = 'bfdnoanauto'
+    # f998a_txt = 'no_inventory_analytical'
+    # iz = 'BCUFR'
+    # env = 'P'
+    #
+    # # Iterate all MMS IDs
+    # for i, nz_mms_id in enumerate(nz_mms_ids, start=1):
+    #     logging.info(f'Processing record {i} / {len(nz_mms_ids)}: {nz_mms_id}')
+    #     copy_analytical_rec_from_nz(nz_mms_id, iz, env, f990a_txt, f998a_txt)

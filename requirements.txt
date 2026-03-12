@@ -2,3 +2,5 @@ pandas
 almapiwrapper
 almasru
 pymongo
+lxml
+python-dotenv
