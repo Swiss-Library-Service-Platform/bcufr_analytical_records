@@ -53,6 +53,12 @@ mongo_report_col = mongo_client[report_db][report_col]
 # Load mapping of IZ MMS IDs to NZ MMS IDs
 mapping_iz_to_nz = pd.read_csv(mapping_iz_to_nz_path, index_col='iz_mms_id', dtype=str)
 
+# Ensure index is of type str (important for key lookups)
+mapping_iz_to_nz.index = mapping_iz_to_nz.index.map(str)
+
+# Remove duplicate index entries, keep the first occurrence
+mapping_iz_to_nz = mapping_iz_to_nz[~mapping_iz_to_nz.index.duplicated(keep='first')]
+
 # Load existing analytical records MMS IDs to avoid duplicates
 with open(existing_records_path, 'r') as f_existing_records:
     next(f_existing_records)  # Ignore header
