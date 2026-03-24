@@ -15,7 +15,7 @@ from typing import Dict, List, Set, Any, Optional
 from datetime import date, datetime, timedelta, timezone
 
 # Config logs
-config_log()
+config_log(f'bcufr_fetch_analytical_records_{date.today().strftime("%Y%m%d")}')
 
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -325,11 +325,11 @@ if __name__ == '__main__':
                 continue
 
             try:
-                # copy_analytical_rec_from_nz(nz_mms_id,
-                #                            iz=zone, env=env,
-                #                            f990a_txt=f990a_txt,
-                #                            f998a_txt=f998a_txt)
-                # append_id_to_csv(existing_records_path, nz_mms_id)
+                copy_analytical_rec_from_nz(nz_mms_id,
+                                           iz=zone, env=env,
+                                           f990a_txt=f990a_txt,
+                                           f998a_txt=f998a_txt)
+                append_id_to_csv(existing_records_path, nz_mms_id)
                 statistics['SUCCESS'] += 1
                 statistics['ADDED_RECORDS_MMS_IDS'].append(nz_mms_id)
 
