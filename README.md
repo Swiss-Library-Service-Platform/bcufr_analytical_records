@@ -18,7 +18,8 @@ To start the system:
 `python fetch_analytical_records.py`
 
 The script uses data included in the `data/` directory:
-- `data/analytical_records.json`: Contains the analytical records to be copied.
+- `data/mms_id_mapping_from_iz_to_nz.csv`: a mapping between NZ and IZ MMS IDs is required to fetch NZ records from an IZ set.
+- `data/analytical_rec_bcufr.csv`: a list of NZ MMS IDs of analytical records already copied in the IZ. The list is useful to skip already copied records.
 
 ## Installation
 Install Python dependencies:
