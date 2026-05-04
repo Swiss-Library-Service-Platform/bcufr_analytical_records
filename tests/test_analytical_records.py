@@ -17,10 +17,6 @@ os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-# Environment parameters
-zone = config['environment']['zone']
-env = config['environment']['environment']
-
 # Process parameters
 f990a_txt = config['process']['f990a_txt']
 f998a_txt = config['process']['f998a_txt']
@@ -30,6 +26,8 @@ set_of_parents_id = config['process']['set_of_parents_id']
 update_data_threshold = datetime.now(timezone.utc) - timedelta(days=int(config['process']['update_delay_days']))
 creation_date_threshold = datetime(int(config['process']['creation_year_threshold']), 1, 1, tzinfo=timezone.utc)
 SruClient.set_base_url('https://swisscovery.slsp.ch/view/sru/41SLSP_UBS')
+iz = 'UBS'
+env = 'S'
 
 # Report parameters
 report_db = config['report']['mongo_db_report']
@@ -60,8 +58,6 @@ class TestCopyAnalyticalRecFromNZ(unittest.TestCase):
     def setUpClass(cls):
         # Set up any necessary resources for the tests
         nz_mms_id = '991172821978605501'
-        iz = 'UBS'
-        env = 'S'
         b = IzBib(nz_mms_id, iz, env, from_nz_mms_id=True, copy_nz_rec=False)
         if not b.error:
             # If the record already exists in the IZ, delete it to ensure a clean test environment
@@ -94,7 +90,7 @@ class TestCopyAnalyticalRecFromNZ(unittest.TestCase):
     def test_transform_iz_mms_id_to_nz_mms_id(self):
         iz_mms_id = '9972761871805504'
         mapping_iz_to_nz = pd.read_csv(mapping_iz_to_nz_path, index_col='iz_mms_id', dtype=str)
-        self.assertIn('9972761871805504', mapping_iz_to_nz.index)
+        self.assertNotIn('9972761871805504', mapping_iz_to_nz.index)
         self.assertEqual(transform_iz_mms_id_to_nz_mms_id(iz_mms_id), '991171363729705501')
         mapping_iz_to_nz = pd.read_csv(mapping_iz_to_nz_path, index_col='iz_mms_id', dtype=str)
         self.assertIn('9972761871805504', mapping_iz_to_nz.index)
