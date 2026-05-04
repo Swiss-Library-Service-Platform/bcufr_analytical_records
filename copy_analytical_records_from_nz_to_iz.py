@@ -5,12 +5,8 @@
 
 # Import libraries
 from almapiwrapper.inventory import IzBib
-from almapiwrapper.configlog import config_log
 from lxml import etree
 from typing import Optional, Literal
-import pandas as pd
-import logging
-import sys
 
 def is_record_in_iz_already_existing(nz_mms_id: str, iz: str, env: Literal['P', 'S'] = 'P') -> bool:
     """Check if the record is already an analytical record in the IZ"""

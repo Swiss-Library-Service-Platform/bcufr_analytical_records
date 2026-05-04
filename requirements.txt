@@ -1,6 +1,6 @@
-pandas
-almapiwrapper
-almasru
-pymongo
-lxml
-python-dotenv
+pandas~=3.0.2
+almapiwrapper~=1.7.4
+almasru~=3.0.4
+pymongo~=4.17.0
+lxml~=6.1.0
+python-dotenv~=1.2.2
