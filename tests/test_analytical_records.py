@@ -1,5 +1,5 @@
 import unittest
-from datetime import date, datetime, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 import os
 import configparser
 import pandas as pd
@@ -94,10 +94,10 @@ class TestCopyAnalyticalRecFromNZ(unittest.TestCase):
     def test_transform_iz_mms_id_to_nz_mms_id(self):
         iz_mms_id = '9972761871805504'
         mapping_iz_to_nz = pd.read_csv(mapping_iz_to_nz_path, index_col='iz_mms_id', dtype=str)
-        self.assertFalse('9972761871805504' in mapping_iz_to_nz.index)
+        self.assertIn('9972761871805504', mapping_iz_to_nz.index)
         self.assertEqual(transform_iz_mms_id_to_nz_mms_id(iz_mms_id), '991171363729705501')
         mapping_iz_to_nz = pd.read_csv(mapping_iz_to_nz_path, index_col='iz_mms_id', dtype=str)
-        self.assertTrue('9972761871805504' in mapping_iz_to_nz.index)
+        self.assertIn('9972761871805504', mapping_iz_to_nz.index)
 
     def test_is_accepted_record(self):
         # 580$$a with "Sonder"
@@ -148,12 +148,9 @@ class TestCopyAnalyticalRecFromNZ(unittest.TestCase):
         if not b.error:
             # If the record exists in the IZ, delete it to clean up after the test
             b.delete()
-        mapping_iz_to_nz = pd.read_csv(mapping_iz_to_nz_path, index_col='iz_mms_id', dtype=str)
-        mapping_iz_to_nz = mapping_iz_to_nz.drop('9972761871805504', errors='ignore')
-        mapping_iz_to_nz.to_csv(mapping_iz_to_nz_path)
-
-
-
+        mapping_iz_to_nz_to_update = pd.read_csv(mapping_iz_to_nz_path, index_col='iz_mms_id', dtype=str)
+        mapping_iz_to_nz_to_update = mapping_iz_to_nz_to_update.drop('9972761871805504', errors='ignore')
+        mapping_iz_to_nz_to_update.to_csv(mapping_iz_to_nz_path)
 
 
 if __name__ == '__main__':
